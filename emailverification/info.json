@@ -11,7 +11,7 @@
     "min_python_version" : [3, 8, 1],
     "permissions" : ["embed_links", "manage_roles"],
     "required_cogs" : {},
-    "requirements" : ["google-api-python-client", "google-auth", "google_auth_oauthlib", "oauth2client"],
+    "requirements" : ["google-api-core", "google-api-python-client", "google-auth", "google_auth_oauthlib", "oauth2client"],
     "short": "Email Verification",
     "tags" : ["utility", "email", "gmail", "verify", "role", "join", "reaction", "domains", "code"],
     "type": "COG"
