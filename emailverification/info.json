@@ -1,0 +1,18 @@
+{
+    "author": [
+        "Obi-Wan3"
+    ],
+    "description": "Allow users to verify their email address via a command and/or reaction, with customizable options.",
+    "disabled" : false,
+    "end_user_data_statement" : "This cog stores provided server settings (e.g. Gmail API authentication info, allow/blocklists, timeouts, etc.).",
+    "hidden": false,
+    "install_msg": "Thank you for installing! Use `[p]help EmailVerification` for more info. **Be sure to run `[p]gmailapisetup` to set up the Gmail API with the bot.**",
+    "min_bot_version" : "3.4.0",
+    "min_python_version" : [3, 8, 1],
+    "permissions" : ["embed_links", "manage_roles"],
+    "required_cogs" : {},
+    "requirements" : ["google-api-python-client", "google_auth_oauthlib", "oauth2client"],
+    "short": "Email Verification",
+    "tags" : ["utility", "email", "gmail", "verify", "role", "join", "reaction", "domains", "code"],
+    "type": "COG"
+}
