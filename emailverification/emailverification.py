@@ -286,8 +286,8 @@ class EmailVerification(commands.Cog):
         if not await self._send_email(
                 credentials,
                 email=email,
-                subject=await self._fill_template(guild_config["template"]["subject"] or DEFAULT_SUBJECT, ctx.author, ctx.guild, email, user_code),
-                content=await self._fill_template(guild_config["template"]["content"] or DEFAULT_CONTENT, ctx.author, ctx.guild, email, user_code)
+                subject=await self._fill_template(guild_config["templates"]["subject"] or DEFAULT_SUBJECT, ctx.author, ctx.guild, email, user_code),
+                content=await self._fill_template(guild_config["templates"]["content"] or DEFAULT_CONTENT, ctx.author, ctx.guild, email, user_code)
         ):
             return await ctx.author.send("There was an error sending the verification code. Please contact the server and/or bot owner to make sure all necessary settings are configured and up to date.")
         await ctx.author.send(f"Please enter the verification code that was just emailed to you (times out in {guild_config['timeout']} minutes).")
@@ -448,7 +448,7 @@ class EmailVerification(commands.Cog):
         await ctx.send(embed=discord.Embed(
             title="Authorize Your Account",
             url=flow.authorization_url()[0],
-            description="Click on the link above and follow the prompts to authorize me to send verification emails via a Gmail account. Send here the code you receive at the end of the process. \n\nIf you get an `Authorization Error` such as `Error 403: access_denied`, make sure that you are signed in with the correct email that has access to the application (contact the bot owner if uncertain — this is in the initial Gmail API configuration instructions).",
+            description="Click on the link above and follow the prompts to authorize me to send verification emails via a Gmail account. __**Send here the code you receive at the end of the process.**__ \n\nIf you get an `Authorization Error` such as `Error 403: access_denied`, make sure that you are signed in with the correct email that has access to the application (contact the bot owner if uncertain — this is in the initial Gmail API configuration instructions).",
             color=await ctx.embed_color()
         ))
 
@@ -516,15 +516,17 @@ class EmailVerification(commands.Cog):
     async def _error_message(self, ctx: commands.Context, *, message: str = ""):
         """Set the error message to be displayed for unallowed email domains (leave blank for default)."""
         await self.config.guild(ctx.guild).domain_error.set(message)
+        if not message:
+            await ctx.send(f"The default error will be used: {DM_ERROR}")
         return await ctx.tick()
 
     @_email_verification.group(name="templates", invoke_without_command=True)
     async def _templates(self, ctx: commands.Context):
         """Set the template message to be emailed to users for verification."""
-        settings = await self.config.guild(ctx.guild).template()
+        settings = await self.config.guild(ctx.guild).templates()
         await ctx.send(embed=discord.Embed(
             title="EmailVerification Templates",
-            description=f"**Subject:** {settings['subject'] or 'Default'}\n**Content:** {settings['content'] or 'Default'}",
+            description=f"**Subject:** {settings['subject'] or f'Default: {DEFAULT_SUBJECT}'}\n**Content:** {settings['content'] or f'Default: {DEFAULT_CONTENT}'}",
             color=await ctx.embed_color()
         ))
         await ctx.send_help()
@@ -540,7 +542,7 @@ class EmailVerification(commands.Cog):
         - `{email}` — user's input email
         - `{user}` — user's username#disc
         """
-        await self.config.guild(ctx.guild).template.subject.set(subject)
+        await self.config.guild(ctx.guild).templates.subject.set(subject)
         return await ctx.tick()
 
     @_templates.command(name="content")
@@ -556,7 +558,7 @@ class EmailVerification(commands.Cog):
         """
         if "{code}" not in content:
             return await ctx.send("The template must include `{code}` to be replaced with the verification code!")
-        await self.config.guild(ctx.guild).template.content.set(content)
+        await self.config.guild(ctx.guild).templates.content.set(content)
         return await ctx.tick()
 
     @_email_verification.command(name="timeout")
