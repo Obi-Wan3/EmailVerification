@@ -55,6 +55,7 @@ DEFAULT_SUBJECT: str = "Verify Your Email in {server}"
 DEFAULT_CONTENT: str = "{user}, here is your verification code: {code}"
 
 DM_ERROR: str = "I cannot DM you! Please make sure you have DMs enabled."
+INVALID_DOMAIN: str = "Your email domain is not allowed!"
 
 
 class EmailVerification(commands.Cog):
@@ -164,7 +165,7 @@ class EmailVerification(commands.Cog):
         # Create Credentials object from json string
         try:
             credentials: Credentials = await self._run_async(Credentials.from_authorized_user_info, info=json.loads(credential_string))
-        except ValueError:
+        except (ValueError, TypeError):
             return
 
         # Refresh Credentials if expired
@@ -274,7 +275,7 @@ class EmailVerification(commands.Cog):
                 (guild_config["domains"]["allowed"] and not await self._check_domains(email_domain, guild_config["domains"]["allowed"])) or
                 (guild_config["domains"]["blocked"] and await self._check_domains(email_domain, guild_config["domains"]["blocked"]))
         ):
-            return await ctx.author.send(guild_config["domain_error"] or "Your email domain is not allowed!")
+            return await ctx.author.send(guild_config["domain_error"] or INVALID_DOMAIN)
 
         # User email input feedback
         await self._tick(msg)
@@ -448,7 +449,7 @@ class EmailVerification(commands.Cog):
         await ctx.send(embed=discord.Embed(
             title="Authorize Your Account",
             url=flow.authorization_url()[0],
-            description="Click on the link above and follow the prompts to authorize me to send verification emails via a Gmail account. __**Send here the code you receive at the end of the process.**__ \n\nIf you get an `Authorization Error` such as `Error 403: access_denied`, make sure that you are signed in with the correct email that has access to the application (contact the bot owner if uncertain — this is in the initial Gmail API configuration instructions).",
+            description="**Click on the link above and follow the prompts** to authorize me to send verification emails via a Gmail account. This provides me **\"Send Email\" access in whichever account is used for authorization** (the email address will show up as the \"sender\" in verification emails to users). __**Send here the code you receive at the end of that authorization process.**__ \n\nIf you get an `Authorization Error` such as `Error 403: access_denied`, make sure that you are signed in with an email that has access to the application (contact the bot owner if uncertain — this is in the Gmail API configuration instructions).",
             color=await ctx.embed_color()
         ))
 
@@ -456,7 +457,7 @@ class EmailVerification(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", check=MessagePredicate.same_context(ctx=ctx), timeout=300)
         except asyncio.TimeoutError:
-            return await ctx.author.send("The operation has timed out. Please try again.")
+            return await ctx.send("The operation has timed out. Please try again.")
 
         # Complete authorization, fetch access/refresh tokens, validate credentials
         try:
@@ -517,7 +518,7 @@ class EmailVerification(commands.Cog):
         """Set the error message to be displayed for unallowed email domains (leave blank for default)."""
         await self.config.guild(ctx.guild).domain_error.set(message)
         if not message:
-            await ctx.send(f"The default error will be used: {DM_ERROR}")
+            await ctx.send(f"The default error will be used: {INVALID_DOMAIN}")
         return await ctx.tick()
 
     @_email_verification.group(name="templates", invoke_without_command=True)
