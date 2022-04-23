@@ -474,7 +474,7 @@ class EmailVerification(commands.Cog):
         return await ctx.send("Email authorization successful!")
 
     @_email_verification.command(name="reaction")
-    async def _reaction(self, ctx: commands.Context, message: typing.Optional[discord.Message], emoji: typing.Optional[discord.PartialEmoji]):
+    async def _reaction(self, ctx: commands.Context, message: typing.Optional[discord.Message], emoji: typing.Union[discord.PartialEmoji, str] = None):
         """Set a reaction on a message to prompt verification when pressed (leave both blank to remove)."""
 
         # Clear config
@@ -502,7 +502,7 @@ class EmailVerification(commands.Cog):
         self.reaction_cache[ctx.guild.id] = {
             "channel": message.channel.id,
             "message": message.id,
-            "emoji": emoji.id if emoji.is_custom_emoji() else emoji.name
+            "emoji": emoji.id if (isinstance(emoji, discord.PartialEmoji) and emoji.is_custom_emoji()) else emoji
         }
 
         return await ctx.tick()
