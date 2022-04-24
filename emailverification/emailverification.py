@@ -496,7 +496,7 @@ class EmailVerification(commands.Cog):
         async with self.config.guild(ctx.guild).reaction() as config:
             config["channel"] = message.channel.id
             config["message"] = message.id
-            config["emoji"] = emoji.id if emoji.is_custom_emoji() else emoji.name
+            config["emoji"] = emoji.id if (isinstance(emoji, discord.PartialEmoji) and emoji.is_custom_emoji()) else emoji
 
         # Update cache
         self.reaction_cache[ctx.guild.id] = {
